@@ -2,32 +2,52 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<!-- viewport-fit=cover 确保移动端刘海屏区域也被利用 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#1f1b17">
 <title>番茄钟 - Pomodoro Timer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* CSS 变量：切换 [data-theme] 属性即可更换主题 */
-  :root, [data-theme="dark"] {
-    --bg: #0f172a;
-    --card: #1e293b;
-    --card-hover: #334155;
-    --focus: #3b82f6;
-    --text: #eee;
-    --muted: #94a3b8;
-    --progress: #3b82f6;
-    --btn-hover: #2563eb;
+  /* ═══════════════════════════════════════════
+     设计主题：陶艺工坊 (Pottery Studio)
+     温暖、有机、手工质感 — 赤陶色调 + 纹理背景 + 优雅衬线数字
+     ═══════════════════════════════════════════ */
+
+  :root {
+    --bg: #1f1b17;
+    --surface: #27231e;
+    --card: #2f2a24;
+    --card-hover: #3a352e;
+    --accent: #d4785c;
+    --accent-dim: rgba(212, 120, 92, 0.12);
+    --accent-glow: rgba(212, 120, 92, 0.30);
+    --text: #ede6db;
+    --text-dim: #b8af9f;
+    --muted: #8c8272;
+    --border: rgba(255,255,255,0.06);
+    --ring-track: #2f2a24;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+    --kbd-bg: #2f2a24;
   }
 
-  [data-theme="light"] {
-    --bg: #f8fafc;
+  html[data-theme="light"] {
+    --bg: #f6f1e9;
+    --surface: #ede5d8;
     --card: #ffffff;
-    --card-hover: #e2e8f0;
-    --focus: #3b82f6;
-    --text: #1e293b;
-    --muted: #64748b;
-    --progress: #3b82f6;
-    --btn-hover: #1d4ed8;
+    --card-hover: #f2ece2;
+    --accent: #c06b4a;
+    --accent-dim: rgba(192, 107, 74, 0.08);
+    --accent-glow: rgba(192, 107, 74, 0.18);
+    --text: #2d2418;
+    --text-dim: #6b5e4e;
+    --muted: #8c7b6b;
+    --border: rgba(0,0,0,0.06);
+    --ring-track: #e8dfd2;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+    --kbd-bg: #ede5d8;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -42,92 +62,128 @@
     min-height: 100vh;
     user-select: none;
     -webkit-user-select: none;
-    /* 主题切换时背景与文字平滑过渡 */
-    transition: background 0.3s, color 0.3s;
+    transition: background 0.4s, color 0.4s;
+  }
+
+  /* 噪点纹理叠加层 — 营造纸张/陶瓷的有机质感 */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 200px 200px;
+    opacity: 0.035;
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* 暗色模式下噪点稍亮，浅色模式下噪点稍暗 */
+  html[data-theme="light"] body::after {
+    opacity: 0.025;
+    filter: invert(1);
   }
 
   .container {
     display: flex;
-    gap: 3rem;
+    flex-direction: column;
     align-items: center;
+    gap: 1.6rem;
     padding: 2rem;
-    max-width: 700px;
+    max-width: 420px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ═══════════ 顶部：标题 + 主题切换 ═══════════ */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     width: 100%;
   }
 
-  /* Left panel: timer */
-  .left-panel {
-    flex-shrink: 0;
-  }
-
-  /* Right panel: controls */
-  .right-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
+  .header h1 {
     flex: 1;
-    min-width: 0;
-  }
-
-  h1 {
-    font-size: 1.4rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-  }
-
-  /* Mode tabs */
-  .modes {
-    display: flex;
-    gap: 4px;
-    background: var(--card);
-    border-radius: 12px;
-    padding: 4px;
-  }
-
-  .mode-btn {
-    flex: 1;
-    padding: 10px 8px;
-    border: none;
-    border-radius: 10px;
-    background: transparent;
-    color: var(--muted);
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s;
+    font-size: 0.95rem;
     font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--muted);
   }
 
-  .mode-btn.active {
-    background: var(--focus);
-    color: #fff;
+  .theme-toggle {
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: var(--shadow-sm);
   }
 
-  /* Timer circle */
+  .theme-toggle:hover {
+    background: var(--card-hover);
+    transform: scale(1.05);
+  }
+  .theme-toggle:active { transform: scale(0.95); }
+
+  /* ═══════════ 计时器圆环 — 视觉主角 ═══════════ */
   .timer-wrapper {
     position: relative;
-    width: 240px;
-    height: 240px;
+    width: 260px;
+    height: 260px;
+  }
+
+  /* 圆环外发光 — 计时中呼吸效果 */
+  .timer-ring-glow {
+    position: absolute;
+    inset: -16px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+  }
+
+  .timer-wrapper.running .timer-ring-glow {
+    opacity: 1;
+    animation: glow-breathe 3s ease-in-out infinite;
+  }
+
+  @keyframes glow-breathe {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.04); }
   }
 
   .timer-ring {
     transform: rotate(-90deg);
-    width: 240px;
-    height: 240px;
+    width: 260px;
+    height: 260px;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 0 12px var(--accent-glow));
+    transition: filter 0.5s;
   }
 
-  .ring-bg {
+  .ring-track {
     fill: none;
-    stroke: var(--card);
-    stroke-width: 8;
+    stroke: var(--ring-track);
+    stroke-width: 10;
   }
 
   .ring-progress {
     fill: none;
-    stroke: var(--progress);
-    stroke-width: 8;
+    stroke: var(--progress, #d4785c);
+    stroke-width: 10;
     stroke-linecap: round;
-    transition: stroke-dashoffset 0.3s linear;
+    transition: stroke-dashoffset 0.35s linear, stroke 0.4s;
   }
 
   .time-display {
@@ -135,235 +191,324 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 3.8rem;
+    font-family: 'Nunito', 'Calibri', 'Segoe UI', system-ui, sans-serif;
+    font-size: 4.6rem;
     font-weight: 700;
-    /* tabular-nums 确保数字等宽，倒计时不会左右跳动 */
-    font-variant-numeric: tabular-nums;
     letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    transition: color 0.4s;
+    z-index: 2;
   }
 
-  /* Session counter */
-  .session-info {
-    font-size: 0.9rem;
+  /* 计时中数字变为强调色 */
+  .timer-wrapper.running .time-display {
+    color: var(--accent);
+  }
+
+  /* ═══════════ 模式选择器 ═══════════ */
+  .mode-selector {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .mode-btn {
+    flex: 1;
+    padding: 10px 6px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
     color: var(--muted);
-  }
-
-  .session-info span {
-    color: var(--text);
-    font-weight: 600;
-  }
-
-  /* Buttons */
-  .controls {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-  }
-
-  .btn {
-    padding: 12px 28px;
-    border: none;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 0.82rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s;
-    letter-spacing: 0.03em;
+    transition: all 0.25s;
+    box-shadow: var(--shadow-sm);
+    position: relative;
   }
 
-  .btn-primary {
-    background: var(--focus);
+  .mode-btn:hover {
+    background: var(--card-hover);
+    color: var(--text);
+  }
+
+  .mode-btn:active { transform: scale(0.97); }
+
+  .mode-btn.active {
+    background: var(--accent);
     color: #fff;
-    min-width: 120px;
+    border-color: transparent;
+    box-shadow: 0 2px 12px var(--accent-glow);
   }
 
-  .btn-primary:hover { background: var(--btn-hover); }
-  .btn-primary:active { transform: scale(0.97); }
-
-  .btn-secondary {
-    background: var(--card);
-    color: var(--text);
-  }
-
-  .btn-secondary:hover { background: var(--card-hover); }
-  .btn-secondary:active { transform: scale(0.97); }
-
-  /* Title row */
-  .title-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .title-row h1 { flex: 1; }
-
-  /* Theme toggle */
-  .theme-toggle {
-    border: none;
-    background: var(--card);
-    color: var(--text);
-    padding: 6px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1rem;
-    transition: background 0.15s;
-    line-height: 1;
-  }
-
-  .theme-toggle:hover { background: var(--card-hover); }
-
-  /* Duration adjuster */
+  /* ═══════════ 时长调节器 ═══════════ */
   .duration-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.9rem;
-    color: var(--muted);
+    gap: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
   }
 
   .duration-btn {
-    width: 32px;
-    height: 32px;
+    width: 42px;
+    height: 42px;
     border: none;
-    border-radius: 8px;
-    background: var(--card);
-    color: var(--text);
-    font-size: 1.1rem;
+    background: transparent;
+    color: var(--muted);
+    font-size: 1.2rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s;
+    transition: all 0.15s;
     flex-shrink: 0;
   }
 
-  .duration-btn:hover { background: var(--card-hover); }
-  .duration-btn:active { transform: scale(0.95); }
+  .duration-btn:hover {
+    background: var(--card-hover);
+    color: var(--text);
+  }
+  .duration-btn:active { transform: scale(0.9); }
 
   .duration-input {
-    width: 56px;
-    padding: 6px 4px;
-    border: 2px solid var(--card);
-    border-radius: 8px;
-    background: var(--card);
+    width: 52px;
+    padding: 10px 4px;
+    border: none;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    background: transparent;
     color: var(--text);
     font-size: 1rem;
     font-weight: 600;
     text-align: center;
     font-variant-numeric: tabular-nums;
+    font-family: inherit;
     outline: none;
-    transition: border-color 0.15s;
-    /* 隐藏 Firefox 数字输入框的上下箭头 */
     -moz-appearance: textfield;
   }
 
-  /* 隐藏 Chrome 数字输入框的上下箭头 */
   .duration-input::-webkit-outer-spin-button,
   .duration-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
 
-  .duration-input:focus { border-color: var(--focus); }
-
-  /* Footer */
-  .footer {
-    margin-top: 0.5rem;
-    font-size: 0.78rem;
+  .duration-label {
+    padding: 0 14px;
+    font-size: 0.85rem;
     color: var(--muted);
+    flex-shrink: 0;
   }
 
-  @media (max-width: 768px) {
-    .container {
-      flex-direction: column;
-      text-align: center;
-      gap: 2rem;
-    }
-    .controls {
-      justify-content: center;
-    }
-    .modes {
-      justify-content: center;
-    }
-    .timer-wrapper {
-      width: 200px;
-      height: 200px;
-    }
-    .timer-ring {
-      width: 200px;
-      height: 200px;
-    }
-    .time-display {
-      font-size: 3rem;
-    }
-    h1 {
-      font-size: 1.2rem;
-    }
+  /* ═══════════ 番茄计数 ═══════════ */
+  .session-info {
+    font-size: 0.85rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .session-dots {
+    display: flex;
+    gap: 4px;
+  }
+
+  .session-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ring-track);
+    transition: all 0.3s;
+  }
+
+  .session-dot.done {
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent-glow);
+  }
+
+  .session-count-text {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* ═══════════ 按钮 ═══════════ */
+  .controls {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .btn {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .btn-primary {
+    flex: 2;
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 16px var(--accent-glow);
+  }
+
+  .btn-primary:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 6px 24px var(--accent-glow);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active {
+    transform: scale(0.97);
+    filter: brightness(0.95);
+  }
+
+  .btn-secondary {
+    flex: 1;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover {
+    background: var(--card);
+    color: var(--text);
+    border-color: transparent;
+  }
+  .btn-secondary:active { transform: scale(0.97); }
+
+  /* ═══════════ 键盘快捷键提示 ═══════════ */
+  .footer {
+    font-size: 0.75rem;
+    color: var(--muted);
+    opacity: 0.7;
   }
 
   .footer kbd {
-    background: var(--card);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.75rem;
+    background: var(--kbd-bg);
+    border: 1px solid var(--border);
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 0.7rem;
+    font-family: inherit;
+  }
+
+  /* ═══════════ 计时结束闪烁 ═══════════ */
+  .flash-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 500;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  /* ═══════════ 响应式：移动端 ═══════════ */
+  @media (max-width: 480px) {
+    .container {
+      gap: 1.2rem;
+      padding: 1.2rem;
+    }
+
+    .timer-wrapper {
+      width: 220px;
+      height: 220px;
+    }
+
+    .timer-ring {
+      width: 220px;
+      height: 220px;
+    }
+
+    .timer-ring-glow {
+      inset: -10px;
+    }
+
+    .time-display {
+      font-size: 3.8rem;
+    }
+
+    .mode-btn {
+      font-size: 0.75rem;
+      padding: 8px 4px;
+      border-radius: 12px;
+    }
+
+    .header h1 {
+      font-size: 0.85rem;
+    }
   }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- Left: timer -->
-  <div class="left-panel">
-    <div class="timer-wrapper">
-      <svg class="timer-ring" viewBox="0 0 240 240">
-        <circle class="ring-bg" cx="120" cy="120" r="112"/>
-        <circle class="ring-progress" cx="120" cy="120" r="112"
-                stroke-dasharray="703.72" stroke-dashoffset="0"/>
-      </svg>
-      <div class="time-display" id="timeDisplay">25:00</div>
-    </div>
+  <!-- 顶部 -->
+  <div class="header">
+    <h1>番茄钟</h1>
+    <button class="theme-toggle" id="themeToggle" title="切换深浅主题">☀️</button>
   </div>
 
-  <!-- Right: controls -->
-  <div class="right-panel">
-    <div class="title-row">
-      <h1>番茄钟</h1>
-      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
-    </div>
+  <!-- 计时圆环 -->
+  <div class="timer-wrapper" id="timerWrapper">
+    <div class="timer-ring-glow"></div>
+    <svg class="timer-ring" viewBox="0 0 240 240">
+      <circle class="ring-track" cx="120" cy="120" r="112"/>
+      <circle class="ring-progress" cx="120" cy="120" r="112"
+              stroke-dasharray="703.72" stroke-dashoffset="0"/>
+    </svg>
+    <div class="time-display" id="timeDisplay">25:00</div>
+  </div>
 
-    <div class="modes">
-      <button class="mode-btn active" data-mode="focus">专注 25min</button>
-      <button class="mode-btn" data-mode="short">短休 5min</button>
-      <button class="mode-btn" data-mode="long">长休 15min</button>
-    </div>
+  <!-- 模式选择 -->
+  <div class="mode-selector">
+    <button class="mode-btn active" data-mode="focus">专注 25min</button>
+    <button class="mode-btn" data-mode="short">短休 5min</button>
+    <button class="mode-btn" data-mode="long">长休 15min</button>
+  </div>
 
-    <div class="duration-row">
-      <button class="duration-btn" id="durationMinus">−</button>
-      <input class="duration-input" id="durationInput" type="number" min="1" max="120" value="25" inputmode="numeric">
-      <span>分钟</span>
-      <button class="duration-btn" id="durationPlus">+</button>
-    </div>
+  <!-- 时长调节 -->
+  <div class="duration-row">
+    <button class="duration-btn" id="durationMinus" aria-label="减少一分钟">−</button>
+    <input class="duration-input" id="durationInput" type="number" min="1" max="120" value="25" inputmode="numeric">
+    <span class="duration-label">分钟</span>
+    <button class="duration-btn" id="durationPlus" aria-label="增加一分钟">+</button>
+  </div>
 
-    <div class="session-info">
-      已完成 <span id="sessionCount">0</span> 个番茄
-    </div>
+  <!-- 番茄计数 -->
+  <div class="session-info">
+    已完成 <span class="session-dots" id="sessionDots"></span>
+    <span class="session-count-text" id="sessionCount">0</span> 个番茄
+  </div>
 
-    <div class="controls">
-      <button class="btn btn-primary" id="startBtn">开始</button>
-      <button class="btn btn-secondary" id="resetBtn">重置</button>
-    </div>
+  <!-- 操作按钮 -->
+  <div class="controls">
+    <button class="btn btn-primary" id="startBtn">开始</button>
+    <button class="btn btn-secondary" id="resetBtn">重置</button>
+  </div>
 
-    <div class="footer">
-      按 <kbd>Space</kbd> 开始/暂停 &nbsp; <kbd>R</kbd> 重置 &nbsp; <kbd>1-3</kbd> 切换模式
-    </div>
+  <!-- 快捷键 -->
+  <div class="footer">
+    按 <kbd>Space</kbd> 开始/暂停 &nbsp; <kbd>R</kbd> 重置 &nbsp; <kbd>1-3</kbd> 切换模式
   </div>
 </div>
 
+<div class="flash-overlay" id="flashOverlay"></div>
+
 <script>
   const MODES = {
-    focus: { label: '专注', minutes: 25, color: '#3b82f6' },
-    short: { label: '短休', minutes: 5,  color: '#10b981' },
-    long:  { label: '长休', minutes: 15, color: '#6366f1' }
+    focus: { label: '专注', minutes: 25, color: '#d4785c' },
+    short: { label: '短休', minutes: 5,  color: '#8b9e7b' },
+    long:  { label: '长休', minutes: 15, color: '#b8956a' }
   };
 
   const DURATION_DEFAULTS = {
@@ -372,9 +517,8 @@
     long: MODES.long.minutes
   };
 
-  const CIRCUMFERENCE = 2 * Math.PI * 112; // SVG 圆周长 (r=112)，用于 stroke-dashoffset 进度动画
+  const CIRCUMFERENCE = 2 * Math.PI * 112;
 
-  // 从 localStorage 恢复用户自定义的各模式时长
   try {
     const saved = JSON.parse(localStorage.getItem('pomodoro-durations'));
     if (saved && typeof saved.focus === 'number') {
@@ -390,17 +534,19 @@
   let timerId = null;
   let sessionCount = 0;
 
-  // DOM 引用缓存，避免重复查询
+  const timerWrapper = document.getElementById('timerWrapper');
   const timeDisplay = document.getElementById('timeDisplay');
   const startBtn = document.getElementById('startBtn');
   const resetBtn = document.getElementById('resetBtn');
   const sessionCountEl = document.getElementById('sessionCount');
+  const sessionDots = document.getElementById('sessionDots');
   const ringProgress = document.querySelector('.ring-progress');
   const modeBtns = document.querySelectorAll('.mode-btn');
   const durationInput = document.getElementById('durationInput');
   const durationMinus = document.getElementById('durationMinus');
   const durationPlus = document.getElementById('durationPlus');
   const themeToggle = document.getElementById('themeToggle');
+  const flashOverlay = document.getElementById('flashOverlay');
 
   function formatTime(s) {
     const m = Math.floor(s / 60);
@@ -409,7 +555,6 @@
   }
 
   function saveDurations() {
-    // 将当前各模式时长持久化到 localStorage，刷新后保持
     try {
       localStorage.setItem('pomodoro-durations', JSON.stringify({
         focus: MODES.focus.minutes,
@@ -430,6 +575,15 @@
     durationInput.value = MODES[currentMode].minutes;
   }
 
+  function updateSessionDots() {
+    const n = sessionCount % 4;
+    let html = '';
+    for (let i = 0; i < 4; i++) {
+      html += `<span class="session-dot${i < n ? ' done' : ''}"></span>`;
+    }
+    sessionDots.innerHTML = html;
+  }
+
   function applyDuration() {
     const v = parseInt(durationInput.value, 10);
     if (isNaN(v) || v < 1) {
@@ -437,7 +591,6 @@
       return;
     }
     const clamped = Math.min(v, 120);
-    // 值未变化时跳过后续更新，避免 blur 触发无操作写入
     if (clamped === MODES[currentMode].minutes) return;
     MODES[currentMode].minutes = clamped;
     durationInput.value = clamped;
@@ -482,12 +635,14 @@
 
   function startTimer() {
     if (timerId) return;
+    timerWrapper.classList.add('running');
     timerId = setInterval(() => {
       remaining--;
       updateDisplay();
       if (remaining <= 0) {
         clearInterval(timerId);
         timerId = null;
+        timerWrapper.classList.remove('running');
         onTimerEnd();
       }
     }, 1000);
@@ -497,11 +652,11 @@
   function pauseTimer() {
     clearInterval(timerId);
     timerId = null;
+    timerWrapper.classList.remove('running');
     startBtn.textContent = '开始';
   }
 
   function resetTimer() {
-    // 停止计时并恢复三种模式的默认时长（25/5/15），清除自定义时长记录
     pauseTimer();
     MODES.focus.minutes = DURATION_DEFAULTS.focus;
     MODES.short.minutes = DURATION_DEFAULTS.short;
@@ -519,7 +674,7 @@
     if (currentMode === 'focus') {
       sessionCount++;
       sessionCountEl.textContent = sessionCount;
-      // 每完成 4 个专注周期，自动进入长休，否则短休
+      updateSessionDots();
       setMode(sessionCount % 4 === 0 ? 'long' : 'short');
     } else {
       setMode('focus');
@@ -528,10 +683,12 @@
   }
 
   function notify() {
-    document.body.style.background = MODES[currentMode === 'focus' ? 'short' : 'focus'].color;
+    /* 屏幕闪烁 — 营造呼吸般的过渡感 */
+    flashOverlay.style.background = MODES[currentMode === 'focus' ? 'short' : 'focus'].color;
+    flashOverlay.style.opacity = '0.25';
     setTimeout(() => {
-      document.body.style.background = 'var(--bg)';
-    }, 300);
+      flashOverlay.style.opacity = '0';
+    }, 350);
 
     if (Notification.permission === 'granted') {
       const label = currentMode === 'focus' ? '休息一下！' : '开始专注！';
@@ -540,7 +697,6 @@
       Notification.requestPermission();
     }
 
-    // Web Audio API 播放提示音，无需外部音频文件
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const osc = ctx.createOscillator();
@@ -571,13 +727,11 @@
     });
   });
 
-  // Duration adjuster
   durationMinus.addEventListener('click', () => adjustDuration(-1));
   durationPlus.addEventListener('click', () => adjustDuration(1));
   durationInput.addEventListener('change', applyDuration);
   durationInput.addEventListener('blur', applyDuration);
 
-  // Theme toggle
   const savedTheme = localStorage.getItem('pomodoro-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', savedTheme);
   updateThemeButton();
@@ -594,7 +748,6 @@
     updateThemeButton();
   });
 
-  // 键盘快捷键：焦点在输入框时忽略，避免干扰输入
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT') return;
     switch (e.key) {
@@ -611,9 +764,9 @@
     }
   });
 
-  // 初始化：恢复主题和时长偏好
   updateModeLabels();
   updateDurationInput();
+  updateSessionDots();
   updateDisplay();
 </script>
 </body>

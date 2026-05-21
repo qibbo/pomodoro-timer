@@ -19,10 +19,10 @@ def main():
         html_content = f.read()
 
     window = webview.create_window(
-        title='番茄钟',
+        title='番茄钟 v1.1.0',
         html=html_content,
-        width=720,
-        height=420,
+        width=480,
+        height=700,
         resizable=False,
         confirm_close=False
     )

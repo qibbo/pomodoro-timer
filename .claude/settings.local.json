@@ -34,9 +34,22 @@
       "Bash(cmd.exe /c \"where gh\")",
       "Bash(/c/Program Files/GitHub CLI/gh auth *)",
       "Bash(\"/c/Program Files/GitHub CLI/gh\" auth status)",
-
       "Bash(\"/c/Program Files/GitHub CLI/gh\" repo create pomodoro-timer --public --source=. --remote=origin --push)",
-      "Bash(\"/c/Program Files/GitHub CLI/gh\" auth setup-git)"
+      "Bash(\"/c/Program Files/GitHub CLI/gh\" auth setup-git)",
+      "Bash(venv/Scripts/python *)",
+      "Bash(venv/Scripts/pyinstaller *)",
+      "Bash(../venv/Scripts/pyinstaller 番茄钟.spec --noconfirm --distpath ./dist --workpath ./build)",
+      "Read(//c/Program Files/Eclipse Adoptium/jdk-21.0.11.10-hotspot/**)",
+      "Read(//c/Android/sdk/**)",
+      "WebFetch(domain:github.com)",
+      "Bash(gh api *)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebSearch",
+      "WebFetch(domain:raw.gitmirror.com)",
+      "WebFetch(domain:ghproxy.net)",
+      "Bash(curl -sL --connect-timeout 15 \"https://raw.githubusercontent.com/vercel-labs/skills/main/skills/find-skills/SKILL.md\")",
+      "Bash(npx skills *)",
+      "Bash(/c/Program Files/GitHub CLI/gh repo *)"
     ]
   }
 }
