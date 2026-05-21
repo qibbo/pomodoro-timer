@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<!-- viewport-fit=cover 确保移动端刘海屏区域也被利用 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>番茄钟 - Pomodoro Timer</title>
+<style>
+  /* CSS 变量：切换 [data-theme] 属性即可更换主题 */
+  :root, [data-theme="dark"] {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-hover: #334155;
+    --focus: #3b82f6;
+    --text: #eee;
+    --muted: #94a3b8;
+    --progress: #3b82f6;
+    --btn-hover: #2563eb;
+  }
+
+  [data-theme="light"] {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --card-hover: #e2e8f0;
+    --focus: #3b82f6;
+    --text: #1e293b;
+    --muted: #64748b;
+    --progress: #3b82f6;
+    --btn-hover: #1d4ed8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    user-select: none;
+    -webkit-user-select: none;
+    /* 主题切换时背景与文字平滑过渡 */
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .container {
+    display: flex;
+    gap: 3rem;
+    align-items: center;
+    padding: 2rem;
+    max-width: 700px;
+    width: 100%;
+  }
+
+  /* Left panel: timer */
+  .left-panel {
+    flex-shrink: 0;
+  }
+
+  /* Right panel: controls */
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+
+  /* Mode tabs */
+  .modes {
+    display: flex;
+    gap: 4px;
+    background: var(--card);
+    border-radius: 12px;
+    padding: 4px;
+  }
+
+  .mode-btn {
+    flex: 1;
+    padding: 10px 8px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+
+  .mode-btn.active {
+    background: var(--focus);
+    color: #fff;
+  }
+
+  /* Timer circle */
+  .timer-wrapper {
+    position: relative;
+    width: 240px;
+    height: 240px;
+  }
+
+  .timer-ring {
+    transform: rotate(-90deg);
+    width: 240px;
+    height: 240px;
+  }
+
+  .ring-bg {
+    fill: none;
+    stroke: var(--card);
+    stroke-width: 8;
+  }
+
+  .ring-progress {
+    fill: none;
+    stroke: var(--progress);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.3s linear;
+  }
+
+  .time-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3.8rem;
+    font-weight: 700;
+    /* tabular-nums 确保数字等宽，倒计时不会左右跳动 */
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  /* Session counter */
+  .session-info {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .session-info span {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* Buttons */
+  .controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .btn {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.03em;
+  }
+
+  .btn-primary {
+    background: var(--focus);
+    color: #fff;
+    min-width: 120px;
+  }
+
+  .btn-primary:hover { background: var(--btn-hover); }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-secondary {
+    background: var(--card);
+    color: var(--text);
+  }
+
+  .btn-secondary:hover { background: var(--card-hover); }
+  .btn-secondary:active { transform: scale(0.97); }
+
+  /* Title row */
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .title-row h1 { flex: 1; }
+
+  /* Theme toggle */
+  .theme-toggle {
+    border: none;
+    background: var(--card);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background 0.15s;
+    line-height: 1;
+  }
+
+  .theme-toggle:hover { background: var(--card-hover); }
+
+  /* Duration adjuster */
+  .duration-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .duration-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--text);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .duration-btn:hover { background: var(--card-hover); }
+  .duration-btn:active { transform: scale(0.95); }
+
+  .duration-input {
+    width: 56px;
+    padding: 6px 4px;
+    border: 2px solid var(--card);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    outline: none;
+    transition: border-color 0.15s;
+    /* 隐藏 Firefox 数字输入框的上下箭头 */
+    -moz-appearance: textfield;
+  }
+
+  /* 隐藏 Chrome 数字输入框的上下箭头 */
+  .duration-input::-webkit-outer-spin-button,
+  .duration-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .duration-input:focus { border-color: var(--focus); }
+
+  /* Footer */
+  .footer {
+    margin-top: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      flex-direction: column;
+      text-align: center;
+      gap: 2rem;
+    }
+    .controls {
+      justify-content: center;
+    }
+    .modes {
+      justify-content: center;
+    }
+    .timer-wrapper {
+      width: 200px;
+      height: 200px;
+    }
+    .timer-ring {
+      width: 200px;
+      height: 200px;
+    }
+    .time-display {
+      font-size: 3rem;
+    }
+    h1 {
+      font-size: 1.2rem;
+    }
+  }
+
+  .footer kbd {
+    background: var(--card);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Left: timer -->
+  <div class="left-panel">
+    <div class="timer-wrapper">
+      <svg class="timer-ring" viewBox="0 0 240 240">
+        <circle class="ring-bg" cx="120" cy="120" r="112"/>
+        <circle class="ring-progress" cx="120" cy="120" r="112"
+                stroke-dasharray="703.72" stroke-dashoffset="0"/>
+      </svg>
+      <div class="time-display" id="timeDisplay">25:00</div>
+    </div>
+  </div>
+
+  <!-- Right: controls -->
+  <div class="right-panel">
+    <div class="title-row">
+      <h1>番茄钟</h1>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </div>
+
+    <div class="modes">
+      <button class="mode-btn active" data-mode="focus">专注 25min</button>
+      <button class="mode-btn" data-mode="short">短休 5min</button>
+      <button class="mode-btn" data-mode="long">长休 15min</button>
+    </div>
+
+    <div class="duration-row">
+      <button class="duration-btn" id="durationMinus">−</button>
+      <input class="duration-input" id="durationInput" type="number" min="1" max="120" value="25" inputmode="numeric">
+      <span>分钟</span>
+      <button class="duration-btn" id="durationPlus">+</button>
+    </div>
+
+    <div class="session-info">
+      已完成 <span id="sessionCount">0</span> 个番茄
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" id="startBtn">开始</button>
+      <button class="btn btn-secondary" id="resetBtn">重置</button>
+    </div>
+
+    <div class="footer">
+      按 <kbd>Space</kbd> 开始/暂停 &nbsp; <kbd>R</kbd> 重置 &nbsp; <kbd>1-3</kbd> 切换模式
+    </div>
+  </div>
+</div>
+
+<script>
+  const MODES = {
+    focus: { label: '专注', minutes: 25, color: '#3b82f6' },
+    short: { label: '短休', minutes: 5,  color: '#10b981' },
+    long:  { label: '长休', minutes: 15, color: '#6366f1' }
+  };
+
+  const DURATION_DEFAULTS = {
+    focus: MODES.focus.minutes,
+    short: MODES.short.minutes,
+    long: MODES.long.minutes
+  };
+
+  const CIRCUMFERENCE = 2 * Math.PI * 112; // SVG 圆周长 (r=112)，用于 stroke-dashoffset 进度动画
+
+  // 从 localStorage 恢复用户自定义的各模式时长
+  try {
+    const saved = JSON.parse(localStorage.getItem('pomodoro-durations'));
+    if (saved && typeof saved.focus === 'number') {
+      MODES.focus.minutes = saved.focus;
+      MODES.short.minutes = saved.short;
+      MODES.long.minutes = saved.long;
+    }
+  } catch (e) { /* ignore */ }
+
+  let currentMode = 'focus';
+  let totalSeconds = MODES.focus.minutes * 60;
+  let remaining = totalSeconds;
+  let timerId = null;
+  let sessionCount = 0;
+
+  // DOM 引用缓存，避免重复查询
+  const timeDisplay = document.getElementById('timeDisplay');
+  const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const sessionCountEl = document.getElementById('sessionCount');
+  const ringProgress = document.querySelector('.ring-progress');
+  const modeBtns = document.querySelectorAll('.mode-btn');
+  const durationInput = document.getElementById('durationInput');
+  const durationMinus = document.getElementById('durationMinus');
+  const durationPlus = document.getElementById('durationPlus');
+  const themeToggle = document.getElementById('themeToggle');
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+  }
+
+  function saveDurations() {
+    // 将当前各模式时长持久化到 localStorage，刷新后保持
+    try {
+      localStorage.setItem('pomodoro-durations', JSON.stringify({
+        focus: MODES.focus.minutes,
+        short: MODES.short.minutes,
+        long: MODES.long.minutes
+      }));
+    } catch (e) { /* ignore */ }
+  }
+
+  function updateModeLabels() {
+    modeBtns.forEach(b => {
+      const m = MODES[b.dataset.mode];
+      b.textContent = `${m.label} ${m.minutes}min`;
+    });
+  }
+
+  function updateDurationInput() {
+    durationInput.value = MODES[currentMode].minutes;
+  }
+
+  function applyDuration() {
+    const v = parseInt(durationInput.value, 10);
+    if (isNaN(v) || v < 1) {
+      durationInput.value = MODES[currentMode].minutes;
+      return;
+    }
+    const clamped = Math.min(v, 120);
+    // 值未变化时跳过后续更新，避免 blur 触发无操作写入
+    if (clamped === MODES[currentMode].minutes) return;
+    MODES[currentMode].minutes = clamped;
+    durationInput.value = clamped;
+    updateModeLabels();
+    saveDurations();
+    totalSeconds = clamped * 60;
+    remaining = totalSeconds;
+    updateDisplay();
+  }
+
+  function adjustDuration(delta) {
+    const mode = MODES[currentMode];
+    const next = mode.minutes + delta;
+    if (next < 1 || next > 120) return;
+    if (next === mode.minutes) return;
+    mode.minutes = next;
+    updateModeLabels();
+    updateDurationInput();
+    saveDurations();
+    totalSeconds = next * 60;
+    remaining = totalSeconds;
+    updateDisplay();
+  }
+
+  function updateDisplay() {
+    const text = formatTime(remaining);
+    timeDisplay.textContent = text;
+    ringProgress.style.strokeDashoffset = CIRCUMFERENCE * (1 - remaining / totalSeconds);
+    document.title = text + ' - 番茄钟';
+  }
+
+  function setMode(mode) {
+    currentMode = mode;
+    totalSeconds = MODES[mode].minutes * 60;
+    remaining = totalSeconds;
+    document.documentElement.style.setProperty('--progress', MODES[mode].color);
+
+    modeBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    updateDurationInput();
+    updateDisplay();
+  }
+
+  function startTimer() {
+    if (timerId) return;
+    timerId = setInterval(() => {
+      remaining--;
+      updateDisplay();
+      if (remaining <= 0) {
+        clearInterval(timerId);
+        timerId = null;
+        onTimerEnd();
+      }
+    }, 1000);
+    startBtn.textContent = '暂停';
+  }
+
+  function pauseTimer() {
+    clearInterval(timerId);
+    timerId = null;
+    startBtn.textContent = '开始';
+  }
+
+  function resetTimer() {
+    // 停止计时并恢复三种模式的默认时长（25/5/15），清除自定义时长记录
+    pauseTimer();
+    MODES.focus.minutes = DURATION_DEFAULTS.focus;
+    MODES.short.minutes = DURATION_DEFAULTS.short;
+    MODES.long.minutes = DURATION_DEFAULTS.long;
+    totalSeconds = MODES[currentMode].minutes * 60;
+    remaining = totalSeconds;
+    try { localStorage.removeItem('pomodoro-durations'); } catch (e) { /* ignore */ }
+    updateModeLabels();
+    updateDurationInput();
+    updateDisplay();
+  }
+
+  function onTimerEnd() {
+    notify();
+    if (currentMode === 'focus') {
+      sessionCount++;
+      sessionCountEl.textContent = sessionCount;
+      // 每完成 4 个专注周期，自动进入长休，否则短休
+      setMode(sessionCount % 4 === 0 ? 'long' : 'short');
+    } else {
+      setMode('focus');
+    }
+    startTimer();
+  }
+
+  function notify() {
+    document.body.style.background = MODES[currentMode === 'focus' ? 'short' : 'focus'].color;
+    setTimeout(() => {
+      document.body.style.background = 'var(--bg)';
+    }, 300);
+
+    if (Notification.permission === 'granted') {
+      const label = currentMode === 'focus' ? '休息一下！' : '开始专注！';
+      new Notification('番茄钟', { body: label, icon: '🍅' });
+    } else if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    // Web Audio API 播放提示音，无需外部音频文件
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 800;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.3);
+    } catch (e) { /* ignore */ }
+  }
+
+
+  startBtn.addEventListener('click', () => {
+    if (timerId) pauseTimer();
+    else startTimer();
+  });
+
+  resetBtn.addEventListener('click', resetTimer);
+
+  modeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      pauseTimer();
+      setMode(btn.dataset.mode);
+    });
+  });
+
+  // Duration adjuster
+  durationMinus.addEventListener('click', () => adjustDuration(-1));
+  durationPlus.addEventListener('click', () => adjustDuration(1));
+  durationInput.addEventListener('change', applyDuration);
+  durationInput.addEventListener('blur', applyDuration);
+
+  // Theme toggle
+  const savedTheme = localStorage.getItem('pomodoro-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeButton();
+
+  function updateThemeButton() {
+    themeToggle.textContent =
+      document.documentElement.getAttribute('data-theme') === 'light' ? '🌙' : '☀️';
+  }
+
+  themeToggle.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('pomodoro-theme', next);
+    updateThemeButton();
+  });
+
+  // 键盘快捷键：焦点在输入框时忽略，避免干扰输入
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    switch (e.key) {
+      case ' ': case 'Spacebar':
+        e.preventDefault();
+        if (timerId) pauseTimer(); else startTimer();
+        break;
+      case 'r': case 'R':
+        resetTimer();
+        break;
+      case '1': pauseTimer(); setMode('focus'); break;
+      case '2': pauseTimer(); setMode('short'); break;
+      case '3': pauseTimer(); setMode('long'); break;
+    }
+  });
+
+  // 初始化：恢复主题和时长偏好
+  updateModeLabels();
+  updateDurationInput();
+  updateDisplay();
+</script>
+</body>
+</html>

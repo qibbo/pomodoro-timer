@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(export ANDROID_SDK_ROOT=\"/c/Android/sdk\")",
+      "Bash(export JAVA_HOME=\"/c/Program Files/Eclipse Adoptium/jdk-17.0.19.10-hotspot\")",
+      "Bash(cmd.exe /c '/c/Android/sdk/cmdline-tools/latest/bin/sdkmanager.bat --list')",
+      "Bash(cmd.exe /c \"C:\\\\Android\\\\sdk\\\\cmdline-tools\\\\latest\\\\bin\\\\sdkmanager.bat --list\")",
+      "Bash(curl -L -o /d/AI/Project_1/pomodoro-capacitor/android/gradle.zip \"https://mirrors.cloud.tencent.com/gradle/gradle-8.14.3-all.zip\" --connect-timeout 10 --max-time 120)",
+      "Bash(winget search *)",
+      "Bash(winget install *)",
+      "Bash(python *)",
+      "Bash(grep -v \".pth$\")",
+      "Bash(cp pomodoro-capacitor/capacitor.config.json android/)",
+      "Bash(cp pomodoro-capacitor/package.json android/)",
+      "Bash(cp pomodoro-capacitor/package-lock.json android/)",
+      "Bash(cp pomodoro-capacitor/番茄钟.apk android/)",
+      "Bash(cp -r pomodoro-capacitor/node_modules android/)",
+      "Bash(npx cap *)",
+      "Bash(../venv/Scripts/pyinstaller.exe 番茄钟.spec --noconfirm --distpath ./dist --workpath ./build)",
+      "Bash(start *)",
+      "Bash(cmd /c build.bat)",
+      "Bash(D:/AI/Project_1/venv/Scripts/pyinstaller.exe *)",
+      "Bash(git *)",
+      "Bash(ssh *)",
+      "Bash(d:/AI/pomodoro-timer/venv/Scripts/pip install *)",
+      "Bash(d:/AI/pomodoro-timer/venv/Scripts/python *)",
+      "Bash(d:/AI/pomodoro-timer/venv/Scripts/pyinstaller 番茄钟.spec --noconfirm --distpath ./dist --workpath ./build)",
+      "Bash(d:/AI/pomodoro-timer/venv/Scripts/pip freeze *)",
+      "Bash(git rm *)",
+      "Bash(git reset *)"
+    ]
+  }
+}

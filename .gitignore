@@ -1,0 +1,16 @@
+venv/
+desktop/build/
+desktop/dist/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.DS_Store
+node_modules/
+android/android/app/build/
+android/android/build/
+android/android/capacitor/build/
+android/android/.gradle/
+android/android/local.properties
+*.iml
+.idea/

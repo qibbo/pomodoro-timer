@@ -1,0 +1,6 @@
+{
+  "appId": "com.pomodoro.timer",
+  "appName": "番茄钟",
+  "webDir": "../core",
+  "bundledWebRuntime": false
+}

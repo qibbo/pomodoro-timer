@@ -1,0 +1,19 @@
+{
+  "name": "pomodoro-timer",
+  "version": "1.0.0",
+  "description": "番茄钟 - Pomodoro Timer Android App",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'No build step needed'",
+    "cap:add": "npx cap add android",
+    "cap:sync": "npx cap sync",
+    "cap:open": "npx cap open android"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/cli": "^8.3.4",
+    "@capacitor/core": "^8.3.4"
+  }
+}
