@@ -49,7 +49,11 @@
       "WebFetch(domain:ghproxy.net)",
       "Bash(curl -sL --connect-timeout 15 \"https://raw.githubusercontent.com/vercel-labs/skills/main/skills/find-skills/SKILL.md\")",
       "Bash(npx skills *)",
-      "Bash(/c/Program Files/GitHub CLI/gh repo *)"
+      "Bash(/c/Program Files/GitHub CLI/gh repo *)",
+      "Bash(gh auth *)",
+      "Bash(netstat -ano)",
+      "Bash(rm -rf __TRACKED_VAR__/.claude/skills/proxy-test)",
+      "Bash(https_proxy=http://127.0.0.1:7890 http_proxy=http://127.0.0.1:7890 git clone --depth 1 https://github.com/anthropics/skills.git __TRACKED_VAR__/.claude/skills/proxy-test)"
     ]
   }
 }
