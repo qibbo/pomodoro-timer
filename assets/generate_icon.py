@@ -1,4 +1,5 @@
 """生成番茄图标，输出多尺寸 .ico 文件"""
+import os
 from PIL import Image, ImageDraw
 
 SIZE = 256
@@ -53,9 +54,18 @@ def draw_tomato(size):
 
 
 img = draw_tomato(SIZE)
+# 将生成的番茄图像保存为 .ico 文件，包含多种常用尺寸以适配不同平台需求
+# 这样在 Windows 桌面快捷方式、应用图标等场景下能清晰显示
+output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tomato.ico')
 img.save(
-    'tomato.ico',
-    format='ICO',
-    sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (256, 256)]
+    output_path,                  # 始终保存到脚本所在的 assets/ 目录
+    format='ICO',                 # 保存为 ICO 格式（Windows 图标）
+    sizes=[                       # 包含多种常用图标尺寸
+        (16, 16),                 # 小尺寸：用于任务栏或列表
+        (32, 32),                 # 常见中图标
+        (48, 48),                 # 兼容老式系统
+        (64, 64),                 # 高清/缩放支持
+        (256, 256)                # 大图标，现代 Windows 支持
+    ]
 )
-print('tomato.ico 已生成（含 16/32/48/64/256 尺寸）')
+print(f'tomato.ico 已生成 → {output_path}')

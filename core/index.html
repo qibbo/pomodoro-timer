@@ -533,6 +533,7 @@
   let remaining = totalSeconds;
   let timerId = null;
   let sessionCount = 0;
+let audioCtx = null;
 
   const timerWrapper = document.getElementById('timerWrapper');
   const timeDisplay = document.getElementById('timeDisplay');
@@ -633,8 +634,21 @@
     updateDisplay();
   }
 
+  function ensureAudioContext() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }
+
   function startTimer() {
     if (timerId) return;
+    ensureAudioContext();
     timerWrapper.classList.add('running');
     timerId = setInterval(() => {
       remaining--;
@@ -683,33 +697,35 @@
   }
 
   function notify() {
-    /* 屏幕闪烁 — 营造呼吸般的过渡感 */
+    /* 屏幕闪烁 */
     flashOverlay.style.background = MODES[currentMode === 'focus' ? 'short' : 'focus'].color;
     flashOverlay.style.opacity = '0.25';
     setTimeout(() => {
       flashOverlay.style.opacity = '0';
-    }, 350);
+    }, 600);
 
     if (Notification.permission === 'granted') {
       const label = currentMode === 'focus' ? '休息一下！' : '开始专注！';
-      new Notification('番茄钟', { body: label, icon: '🍅' });
-    } else if (Notification.permission === 'default') {
-      Notification.requestPermission();
+      new Notification('番茄钟', { body: label });
     }
 
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = 800;
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.3);
-    } catch (e) { /* ignore */ }
+    /* 3 声短促提示音 × 2 轮 */
+    if (audioCtx && audioCtx.state === 'running') {
+      const now = audioCtx.currentTime;
+      for (let i = 0; i < 6; i++) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = 800;
+        osc.type = 'sine';
+        const t = now + i * 0.25 + (i >= 3 ? 0.25 : 0);
+        gain.gain.setValueAtTime(0.5, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+        osc.start(t);
+        osc.stop(t + 0.15);
+      }
+    }
   }
 
 

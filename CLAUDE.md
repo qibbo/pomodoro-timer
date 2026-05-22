@@ -24,7 +24,7 @@ venv/Scripts/pip install -r requirements.txt
 
 - `launcher.py` — 入口脚本，用 pywebview 创建原生窗口加载 `core/index.html`
 - `番茄钟.spec` — PyInstaller 打包配置，将 launcher.py + index.html + 图标打包为单个 exe
-- 窗口固定 720×420，不可调整大小，无窗口装饰下的关闭确认
+- 窗口固定 480×700，不可调整大小，无窗口装饰下的关闭确认
 
 ### 安卓版（android/）
 
@@ -45,3 +45,7 @@ venv/Scripts/pip install -r requirements.txt
 - 计时结束通知使用 Web Audio API 合成提示音，无需外部音频文件
 - 三种模式（专注/短休/长休），每 4 个专注周期自动进入长休
 - 桌面版入口文件名含中文（`番茄钟.spec`），PyInstaller 打包产物也含中文（`番茄钟.exe`）
+
+## 项目约定
+
+- **每次大的修改后必须更新 README.md**，保持功能描述与代码同步
