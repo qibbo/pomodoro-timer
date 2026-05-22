@@ -519,6 +519,9 @@
 
   const CIRCUMFERENCE = 2 * Math.PI * 112;
 
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const BEEP_URI = 'data:audio/wav;base64,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';
+
   try {
     const saved = JSON.parse(localStorage.getItem('pomodoro-durations'));
     if (saved && typeof saved.focus === 'number') {
@@ -635,14 +638,18 @@ let audioCtx = null;
   }
 
   function ensureAudioContext() {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-    if (Notification.permission === 'default') {
-      Notification.requestPermission();
+    try {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      if (Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    } catch (e) {
+      audioCtx = null;
     }
   }
 
@@ -710,21 +717,31 @@ let audioCtx = null;
     }
 
     /* 3 声短促提示音 × 2 轮 */
-    if (audioCtx && audioCtx.state === 'running') {
-      const now = audioCtx.currentTime;
-      for (let i = 0; i < 6; i++) {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.frequency.value = 800;
-        osc.type = 'sine';
-        const t = now + i * 0.25 + (i >= 3 ? 0.25 : 0);
-        gain.gain.setValueAtTime(0.5, t);
-        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
-        osc.start(t);
-        osc.stop(t + 0.15);
-      }
+    if (isAndroid) {
+      const offsets = [0, 250, 500, 1000, 1250, 1500];
+      offsets.forEach(ms => {
+        setTimeout(() => {
+          try { new Audio(BEEP_URI).play(); } catch (e) { /* ignore */ }
+        }, ms);
+      });
+    } else if (audioCtx) {
+      try {
+        audioCtx.resume();
+        const now = audioCtx.currentTime;
+        for (let i = 0; i < 6; i++) {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.frequency.value = 800;
+          osc.type = 'sine';
+          const t = now + i * 0.25 + (i >= 3 ? 0.25 : 0);
+          gain.gain.setValueAtTime(0.5, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+          osc.start(t);
+          osc.stop(t + 0.15);
+        }
+      } catch (e) { /* ignore */ }
     }
   }
 

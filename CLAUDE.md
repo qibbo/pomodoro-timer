@@ -49,3 +49,5 @@ venv/Scripts/pip install -r requirements.txt
 ## 项目约定
 
 - **每次大的修改后必须更新 README.md**，保持功能描述与代码同步
+- **重新打包前必须更新版本号**（launcher.py、build.gradle、package.json、README.md），版本号遵循语义化规范
+- **打包完成后主动询问用户是否上传到仓库**，不自动推送
