@@ -12,5 +12,6 @@ android/android/build/
 android/android/capacitor/build/
 android/android/.gradle/
 android/android/local.properties
+android/番茄钟.apk
 *.iml
 .idea/
